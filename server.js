@@ -1,62 +1,53 @@
 var express = require('express');
 var app = express();
-var fs = require("fs");
-var bodyParser = require('body-parser')
+var apiRouter = express.Router();
+var bodyParser = require('body-parser');
+var config = require('./config');
 var mongoose = require('mongoose');
-var Article = require('./models/article');
+var morgan = require('morgan');
 
-mongoose.connect('mongodb://localhost/articlesdb');
+mongoose.Promise = require('bluebird');
 
-app.use( bodyParser.json() ); 
+//Connect to mongoose
+mongoose.connect(config.database);
 
-app.post('/article', function (req, res) {
-    var article = new Article();
+// APP CONFIGURATION
+// use body parser so we can grab information from POST requests
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-    article.title = req.body.title;
-    article.author = req.body.author;
-    article.body = req.body.body;
-
-    article.save(function(err) {
-        if (err) {
-            // duplicate entry
-            if (err.code == 11000)
-                return res.json({
-                    success: false,
-                    message: 'A user with that username already exists. '
-                });
-            else
-                return res.send(err);
-        }
-        res.json({ message: 'User created!' });
-    });
+// configure our app to handle CORS requests
+app.use(function(req, res, next) {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+	next();
 });
 
-app.get('/article/:author', function (req, res) {
-  Article.find({'author': req.params.author}, function (err, docs) {
-      res.json(docs);
-  });
-})
+// log all requests to the console 
+app.use(morgan('dev'));
 
-app.delete('/article/:title', function (req, res) {
-  Article.find({'title': req.params.title}).remove().exec(function(err, data) {
-    res.json({ 'Documents removed': data});
-  });
+
+//Middleware
+apiRouter.use(function(req, res, next){
+	console.log('Somebody just came to our app!');
+	next();
 });
 
-app.update('/article/:id', function(req, res){
+// ROUTES FOR OUR API
+// ======================================
 
+// basic route for the home page
+app.get('/', function(req, res) {
+	res.send('Welcome to the home page!');
 });
 
-app.get('/article/all', function (req, res) {
-	Article.find(function(err, articles) {
-		if (err) res.send(err);
-		res.json(articles);
-	});
-});
+// ROUTES FOR ARTICLE
+var articleRouter = require('./app/Routes/articleRoutes')(app,express);
+var topicRouter = require('./app/Routes/topicRoutes')(app,express);
 
+// REGISTER OUR ROUTES
+app.use('/api', topicRouter);
 
-var server = app.listen(8080, function () {
-  var host = server.address().address
-  var port = server.address().port
-  console.log("Example app listening at http://%s:%s", host, port)
-})
+app.listen(config.port);
+console.log('Magic happens on port ' + config.port);

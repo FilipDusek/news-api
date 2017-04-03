@@ -1,20 +1,12 @@
 {
-  "name": "news-rest",
-  "version": "1.0.0",
-  "description": "",
+  "name": "newsstand",
   "main": "server.js",
   "dependencies": {
-    "body-parser": "^1.17.1",
-    "express": "^4.15.2",
-    "mongoose": "^4.9.2"
-  },
-  "devDependencies": {
-    "express": "^4.15.2"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "ISC"
+    "bcrypt-nodejs": "latest",
+    "body-parser": "latest",
+    "express": "latest",
+    "mongoose": "latest",
+    "morgan": "latest",
+    "bluebird":"latest"
+  }
 }
